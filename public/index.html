@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Air Piano</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#f3f1ec;--panel:#fff;--ink:#1d2127;--mute:#5d6570;--line:#d7d3ca;--key:#fbfaf7;--keyon:#e4e0d6;--accent:#0b6e7a;color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14181d;--panel:#1c2229;--ink:#ecebe6;--mute:#9aa3ad;--line:#2f3841;--key:#e9e6dc;--keyon:#bdb9ab;--accent:#56c1cf;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#14181d;--panel:#1c2229;--ink:#ecebe6;--mute:#9aa3ad;--line:#2f3841;--key:#e9e6dc;--keyon:#bdb9ab;--accent:#56c1cf;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Avenir Next","Segoe UI",system-ui,sans-serif}
+main{max-width:880px;margin:0 auto;padding:24px 16px 48px}
+h1{font:600 clamp(28px,6vw,44px)/1.1 Georgia,"Times New Roman",serif;margin:0 0 6px}
+.lead{color:var(--mute);margin:0 0 20px;max-width:60ch}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px}
+.top{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+#led{width:64px;height:64px;border-radius:50%;background:#222;border:2px solid var(--line);transition:background .05s,box-shadow .05s;flex:none}
+.read{flex:1;min-width:180px}
+.big{font:600 34px/1 Georgia,serif}
+.sub{color:var(--mute);font-size:14px}
+.sl{width:100%;margin:12px 0 4px;accent-color:var(--accent)}
+.piano{background:linear-gradient(#3a2418,#1f120b);border-radius:14px 14px 10px 10px;padding:14px 14px 16px;margin-bottom:12px;box-shadow:0 10px 24px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.12)}
+.brand{font:600 13px/1 Georgia,serif;letter-spacing:.35em;color:#d9b66a;text-align:center;padding:4px 0 12px}
+.brand span{display:block;font:400 10px/1 system-ui,sans-serif;letter-spacing:.2em;color:#a98a52;margin-top:6px}
+.felt{height:7px;background:#7a1b22;border-radius:2px 2px 0 0;box-shadow:0 2px 0 rgba(0,0,0,.4)}
+.board{position:relative;background:#111}
+.keys{display:flex;height:240px;touch-action:none;user-select:none}
+.k{flex:1;position:relative;cursor:pointer;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;padding-bottom:12px;color:#2b2b2b;font-weight:600;background:linear-gradient(#fffefb,#f5f2ea 80%,#e4dfd1);border-left:1px solid #a9a393;border-right:1px solid #a9a393;border-radius:0 0 7px 7px;box-shadow:inset 0 -8px 0 #d8d3c4,0 3px 3px rgba(0,0,0,.4);transition:transform .04s}
+.k::before{content:"";width:10px;height:10px;border-radius:50%;background:var(--c);margin-bottom:8px;opacity:.55;border:1px solid rgba(0,0,0,.25)}
+.k.on{background:linear-gradient(#ebe7db,#e0dbcc);box-shadow:inset 0 -3px 0 #cfc9b8,0 1px 1px rgba(0,0,0,.4);transform:translateY(2px)}
+.k.on::before{opacity:1;box-shadow:0 0 12px 3px var(--c)}
+.k small{font-weight:400;color:#6b665a;font-size:11px}
+.blacks{position:absolute;top:0;left:0;right:0;height:62%;pointer-events:none}
+.bk{position:absolute;top:0;width:7.2%;height:100%;pointer-events:auto;cursor:pointer;background:linear-gradient(90deg,#2a2a2a,#0e0e0e 18%,#050505 50%,#0e0e0e 82%,#2a2a2a);border-radius:0 0 5px 5px;box-shadow:inset 0 -10px 0 #1b1b1b,0 4px 5px rgba(0,0,0,.6);transition:height .04s}
+.bk.p{height:97%;box-shadow:inset 0 -4px 0 #1b1b1b,0 1px 2px rgba(0,0,0,.6)}
+button{font:inherit;padding:9px 16px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer}
+button:hover{border-color:var(--accent)}
+button:focus-visible,.k:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+button.rec{background:#b3261e;color:#fff;border-color:#b3261e}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+pre,textarea{font:13px/1.5 ui-monospace,Menlo,Consolas,monospace;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:10px;width:100%;margin:10px 0 0}
+pre{height:130px;overflow:auto;white-space:pre-wrap}
+textarea{height:100px;resize:vertical}
+h2{font:600 18px/1.2 Georgia,serif;margin:0 0 8px}
+ol{margin:6px 0 0;padding-left:20px;color:var(--mute);font-size:14px}
+</style>
+</head>
+<body>
+<main>
+<h1>Air Piano</h1>
+<p class="lead">The same notes, bands and colors as your Wokwi circuit, with a real piano sound. Play with the keys or drag the distance slider like the HC-SR04.</p>
+
+<section class="panel">
+<div class="top">
+<div id="led" aria-label="LED preview"></div>
+<div class="read"><div class="big" id="nn">Silent</div><div class="sub" id="ds">Move the slider or press a key</div></div>
+</div>
+<input class="sl" id="sl" type="range" min="0" max="50" step="0.5" value="0" aria-label="Sensor distance in centimeters">
+<div class="sub">Sensor distance: <b id="dv">0</b> cm. Silent below 5 cm and above 45 cm.</div>
+</section>
+
+<section class="piano">
+<div class="brand">AIR PIANO<span>C MAJOR &middot; 5 TO 45 CM</span></div>
+<div class="felt"></div>
+<div class="board"><div class="keys" id="keys"></div><div class="blacks" id="blacks"></div></div>
+</section>
+<div class="sub" style="margin:0 0 16px">Computer keys: A S D F G H J K. The black keys are for show, since this scale uses only the white keys.</div>
+
+<section class="panel">
+<h2>Record and play</h2>
+<div class="row"><button id="rec">Record</button><button id="play">Play</button><button id="clr">Clear</button><span class="sub" id="st">Ready. Up to 32 notes.</span></div>
+<pre id="log" aria-live="polite"></pre>
+</section>
+
+<section class="panel">
+<h2>Live link</h2>
+<div class="row"><span class="sub" id="ls"></span><button id="lrun">Run in Wokwi</button></div>
+<p class="sub" style="margin:8px 0 0">When linked, Wokwi plays the notes and this page plays the piano sound. Click anywhere once to enable sound.</p>
+</section>
+
+<section class="panel">
+<h2>Paste Serial log</h2>
+<p class="sub" style="margin:0">A web page cannot read the Wokwi simulator directly, so the link goes through the Serial Monitor.</p>
+<ol>
+<li>Wokwi to this page: record a song in Wokwi, copy the Serial Monitor lines (like <code>E4 450ms</code>), paste them below, and press Play from Wokwi.</li>
+<li>This page to Wokwi: press a key here, then click the HC-SR04 in Wokwi and set its slider to the distance shown under the note name.</li>
+</ol>
+<textarea id="paste" placeholder="C4 300ms&#10;E4 450ms&#10;G4 300ms"></textarea>
+<div class="row" style="margin-top:10px"><button id="pw">Play from Wokwi</button></div>
+</section>
+</main>
+<script>
+const N=["C4","D4","E4","F4","G4","A4","B4","C5"],F=[262,294,330,349,392,440,494,523];
+const C=[[255,0,0],[255,70,0],[255,200,0],[0,255,0],[0,255,200],[0,0,255],[75,0,130],[160,0,255]];
+const KM="asdfghjk";
+const $=id=>document.getElementById(id);
+let ac=null,master=null;
+function audio(){if(!ac){ac=new (window.AudioContext||window.webkitAudioContext)();master=ac.createGain();master.gain.value=.5;
+const lp=ac.createBiquadFilter();lp.type="lowpass";lp.frequency.value=4200;master.connect(lp);lp.connect(ac.destination);}
+if(ac.state==="suspended")ac.resume();return ac;}
+function voice(f){const a=audio(),t=a.currentTime,g=a.createGain();g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.8,t+.006);
+g.gain.exponentialRampToValueAtTime(.25,t+.9);g.gain.exponentialRampToValueAtTime(.02,t+5);g.connect(master);
+const parts=[[1,1],[2,.5],[3,.28],[4,.14],[5,.07],[6,.04]],os=[];
+parts.forEach(([m,v],i)=>{const o=a.createOscillator(),h=a.createGain();o.type="sine";o.frequency.value=f*m*(1+(i?0.0004*i:0));
+h.gain.value=v*(m>3?1:1);const d=a.createGain();d.gain.setValueAtTime(1,t);d.gain.exponentialRampToValueAtTime(.05,t+(m>2?1.2:4));
+o.connect(h);h.connect(d);d.connect(g);o.start(t);os.push(o);});
+return{stop(){const n=a.currentTime;g.gain.cancelScheduledValues(n);g.gain.setValueAtTime(Math.max(g.gain.value,.02),n);g.gain.exponentialRampToValueAtTime(.001,n+.18);os.forEach(o=>o.stop(n+.22));}};}
+
+function idxOf(d){if(d<5||d>45)return -1;return Math.min(7,Math.floor((d-5)/5));}
+function bright(d){const p=((d-5)%5)/5,t=1-Math.abs(p-.5)*2;return .2+.8*t;}
+function led(i,b){const e=$("led");if(i<0){e.style.background="#222";e.style.boxShadow="none";return;}
+const c=C[i].map(v=>Math.round(v*b)),s=`rgb(${c})`;e.style.background=s;e.style.boxShadow=`0 0 22px ${s}`;}
+
+const keys=$("keys");
+N.forEach((n,i)=>{const k=document.createElement("div");k.className="k";k.tabIndex=0;k.style.setProperty("--c",`rgb(${C[i]})`);
+k.innerHTML=`${n}<small>${5+i*5}-${10+i*5} cm</small>`;k.dataset.i=i;keys.appendChild(k);});
+const kEl=[...keys.children];
+[0,1,3,4,5].forEach(i=>{const b=document.createElement("div");b.className="bk";b.style.left=`calc(${(i+1)*12.5}% - 3.6%)`;
+b.addEventListener("pointerdown",()=>{b.classList.add("p");setTimeout(()=>b.classList.remove("p"),120);});$("blacks").appendChild(b);});
+
+let cur=-1,vc=null,dist=0;
+let recOn=false,song=[],segStart=0,lastEnd=0,haveEnd=false,pend=0,playing=false,timers=[];
+const log=s=>{const l=$("log");l.textContent+=s+"\n";l.scrollTop=l.scrollHeight;};
+
+function setNote(i,d){
+ const now=performance.now();
+ if(i!==cur){
+  if(vc){vc.stop();vc=null;}
+  if(recOn&&cur>=0){closeSeg(now);}
+  kEl.forEach((k,j)=>k.classList.toggle("on",j===i));
+  if(i>=0){vc=voice(F[i]);if(recOn){segStart=now;pend=haveEnd?Math.round(now-lastEnd):0;}}
+  cur=i;
+ }
+ led(i,i>=0?bright(d):0);
+ $("nn").textContent=i>=0?N[i]:"Silent";
+ $("ds").textContent=i>=0?`${F[i]} Hz. In Wokwi, set the slider near ${(d).toFixed(1)} cm`:"Outside the 5 to 45 cm range";
+}
+function closeSeg(now){if(song.length<32){const dur=Math.round(now-segStart);song.push({i:cur,dur,gap:pend});log(`${N[cur]} ${dur}ms`);if(song.length===32){log("32 notes reached");}}
+ lastEnd=now;haveEnd=true;}
+function setDist(d){dist=d;$("sl").value=d;$("dv").textContent=d;if(live&&wk){sendD(d);return;}setNote(idxOf(d),d);}
+
+$("sl").addEventListener("input",e=>setDist(parseFloat(e.target.value)));
+let held=null;
+keys.addEventListener("pointerdown",e=>{const k=e.target.closest(".k");if(!k)return;held=+k.dataset.i;setDist(5+held*5+2.5);});
+["pointerup","pointercancel","pointerleave"].forEach(ev=>keys.addEventListener(ev,()=>{if(held!==null){held=null;setDist(0);}}));
+addEventListener("keydown",e=>{if(e.repeat||e.target.tagName==="TEXTAREA")return;const i=KM.indexOf(e.key.toLowerCase());if(i>=0){held=i;setDist(5+i*5+2.5);}});
+addEventListener("keyup",e=>{const i=KM.indexOf(e.key.toLowerCase());if(i>=0&&held===i){held=null;setDist(0);}});
+
+$("rec").onclick=()=>{if(live&&wk){send("R");return;}
+ const b=$("rec");
+ if(!recOn){if(playing)return;audio();song=[];haveEnd=false;pend=0;$("log").textContent="";log("--- REC ---");recOn=true;
+  b.textContent="Stop";b.classList.add("rec");$("st").textContent="Recording";
+  if(cur>=0){segStart=performance.now();pend=0;}}
+ else{if(cur>=0)closeSeg(performance.now());recOn=false;b.textContent="Record";b.classList.remove("rec");
+  log("--- REC stop ---");$("st").textContent=`Saved ${song.length} notes`;}
+};
+function run(seq,label){
+ if(playing)return;playing=true;audio();setDist(0);log(`--- ${label} ---`);$("st").textContent="Playing";
+ let t=0;
+ seq.forEach(s=>{t+=s.gap;const on=t;
+  timers.push(setTimeout(()=>{setNote(s.i,5+s.i*5+2.5);log(`${N[s.i]} ${s.dur}ms`);},on));
+  t+=s.dur;
+  timers.push(setTimeout(()=>setNote(-1,0),t));});
+ timers.push(setTimeout(()=>{playing=false;timers=[];log("--- END ---");$("st").textContent="Ready. Up to 32 notes.";},t+50));
+}
+$("play").onclick=()=>{if(live&&wk){send("P");return;}if(recOn)return;if(!song.length){$("st").textContent="Nothing recorded yet. Press Record first.";return;}run(song,"PLAY");};
+$("clr").onclick=()=>{if(playing)return;song=[];$("log").textContent="";$("st").textContent="Cleared";};
+$("pw").onclick=()=>{
+ const seq=[];const re=/\b([A-G]\d)\s+(\d+)\s*ms/gi;let m;
+ while((m=re.exec($("paste").value))&&seq.length<32){const i=N.indexOf(m[1].toUpperCase());if(i>=0)seq.push({i,dur:+m[2],gap:seq.length?80:0});}
+ if(!seq.length){$("st").textContent="No lines like E4 450ms found. Paste the Serial Monitor output.";return;}
+ if(recOn)return;run(seq,"WOKWI LOG");
+};
+
+let live=false,wk=false,ws=null,lastD=0,hb=null;
+function send(t){if(ws&&ws.readyState===1)ws.send(t);}
+function sendD(d){lastD=d;send("D"+d);clearInterval(hb);if(d>=5&&d<=45)hb=setInterval(()=>send("D"+lastD),150);}
+function stat(){$("ls").textContent=!live?"Bridge not found. Start it with: node bridge.js":wk?"Linked: Wokwi is running":"Bridge connected. Waiting for Wokwi to start";}
+function conn(){ws=new WebSocket("ws://"+location.host);
+ws.onopen=()=>{live=true;stat();};
+ws.onclose=()=>{live=false;wk=false;stat();setTimeout(conn,1500);};
+ws.onmessage=e=>{const m=JSON.parse(e.data);
+ if(m.type==="status"){wk=m.wokwi;stat();if(wk)log("Wokwi linked");}
+ else if(m.type==="line"){const t=m.text;
+  if(t.startsWith("@N ")){const p=t.split(" ");setNote(+p[1],+p[2]);$("sl").value=p[2];$("dv").textContent=p[2];}
+  else if(t==="@OFF"){setNote(-1,0);}
+  else if(t==="@READY"){log("Wokwi started");}
+  else log(t);}};}
+$("lrun").onclick=()=>send("RUN");
+addEventListener("pointerdown",audio,{once:true});addEventListener("keydown",audio,{once:true});
+if(location.protocol==="http:")conn();else stat();
+</script>
+</body>
+</html>
